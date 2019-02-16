@@ -1,5 +1,6 @@
 let mysql = require("mysql"),
-    inquirer = require("inquirer");
+    inquirer = require("inquirer"),
+    Table = require('cli-table'); // use to disoplay pretty tables in the console
 
 var connection = mysql.createConnection({
     host: "localhost",
@@ -17,9 +18,9 @@ connection.connect(function(err) {
 
 let storeInit = () => {
     inquirer.prompt({
-        name: "who",
+        name: "whoThis",
         type: "list",
-        message: "Who are you?",
+        message: "Are a customer, manager or supervisor?",
         choices: [
             "Customer",
             "Manager",
@@ -27,8 +28,8 @@ let storeInit = () => {
             "I Dont know!"
         ]
     })
-    .then(function(answer) {
-        switch (answer.who) {
+    .then(function(input) {
+        switch (input.whoThis) {
         case "Customer":
             customerInit();
             break;
@@ -42,5 +43,48 @@ let storeInit = () => {
             connection.end();
             break;
         }
+    });
+}
+
+let customerInit = () => {
+    var query = "SELECT * FROM products";
+    connection.query(query, function(err, res) {
+        var table = new Table ({
+            head: ["Sku", "Product", "Department", "Price", "Stock"],
+            colWidths: [10, 35, 25, 10, 10]
+        });
+        res.forEach((item, index) => {
+            let {item_id, product_name, department_name, price, stock_quantity} = item;
+            let itemArr = [item_id, product_name, department_name, price, stock_quantity];
+            table.push(itemArr);
+        });
+        console.log(table.toString());
+
+        // ask customer what he/she wants to buy
+        buy(res);
+    });
+}
+
+let buy = (res) => {
+    inquirer.prompt([
+        {
+            name: "item_id",
+            type: "input",
+            message: "Enter the Sku of the item you want to buy.",
+            choices: [
+                "Customer",
+                "Manager",
+                "Supervisor",
+                "I Dont know!"
+            ]
+        },
+        {
+            name: "quantity",
+            type: "input",
+            message: "Enter the quantity."
+        }
+    ])
+    .then(function(input) {
+        console.log(input.quantity + " " + res[input.item_id - 1].product_name + " added to you cart ");
     });
 }
