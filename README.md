@@ -1,2 +1,2 @@
-# bamazon
+# bAmazon
 Store Inventory Node App
