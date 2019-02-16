@@ -1,0 +1,23 @@
+{
+  "name": "bamazon",
+  "version": "1.0.0",
+  "description": "Store inventory app",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/xtianares/bamazon.git"
+  },
+  "author": "Christian Castanares",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/xtianares/bamazon/issues"
+  },
+  "homepage": "https://github.com/xtianares/bamazon#readme",
+  "dependencies": {
+    "inquirer": "^6.2.2",
+    "mysql": "^2.16.0"
+  }
+}
