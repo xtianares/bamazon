@@ -55,7 +55,7 @@ const customer = {
             if (!current) {
                 let table = new Table ({
                     head: ["Sku", "Product", "Department", "Price", "Stock"],
-                    colWidths: [10, 35, 25, 10, 10]
+                    colWidths: [10, 30, 20, 10, 10]
                 });
                 res.forEach((item, index) => {
                     let {item_id, product_name, department_name, price, stock_quantity} = item;
