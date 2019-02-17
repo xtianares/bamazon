@@ -85,7 +85,7 @@ const customer = {
         }
         else {
             console.log("Not enough inventory.");
-            this.buy(res);
+            customer.buy(res);
         }
     },
     buy: (res) => {
