@@ -32,7 +32,7 @@ let storeInit = () => {
     .then(function(input) {
         switch (input.whoThis) {
         case "Customer":
-            customerInit();
+            customer.init();
             break;
         case "Manager":
             managerInit();
@@ -47,79 +47,80 @@ let storeInit = () => {
     });
 }
 
-let customerInit = (current) => {
-    let query = "SELECT * FROM products";
-    connection.query(query, function(err, res) {
-        if(err) throw err;
-        if (!current) {
-            let table = new Table ({
-                head: ["Sku", "Product", "Department", "Price", "Stock"],
-                colWidths: [10, 35, 25, 10, 10]
-            });
-            res.forEach((item, index) => {
-                let {item_id, product_name, department_name, price, stock_quantity} = item;
-                let itemArr = [item_id, product_name, department_name, price, stock_quantity];
-                table.push(itemArr);
-            });
-            console.log(table.toString());
+const customer = {
+    init: (current) => {
+        let query = "SELECT * FROM products";
+        connection.query(query, function(err, res) {
+            if(err) throw err;
+            if (!current) {
+                let table = new Table ({
+                    head: ["Sku", "Product", "Department", "Price", "Stock"],
+                    colWidths: [10, 35, 25, 10, 10]
+                });
+                res.forEach((item, index) => {
+                    let {item_id, product_name, department_name, price, stock_quantity} = item;
+                    let itemArr = [item_id, product_name, department_name, price.toFixed(2), stock_quantity];
+                    table.push(itemArr);
+                });
+                console.log(table.toString());
 
-            // ask customer what he/she wants to buy
-            buy(res);
+                // ask customer what he/she wants to buy
+                customer.buy(res);
+            }
+            else {
+                customer.buyMore(res);
+            }
+        });
+    },
+    updateInventory: (res, sku, quantity) => {
+        let newQty = (res[sku - 1].stock_quantity - quantity);
+        if(newQty >= 0) {
+            let query = "UPDATE products SET stock_quantity = ? WHERE item_id = ?";
+            connection.query(query, [newQty, sku], function(err) {
+                if(err) throw err;
+                console.log(quantity + " " + res[sku - 1].product_name + " added to you cart ");
+                total += quantity * res[sku - 1].price;
+                customer.init(true);
+            });
         }
         else {
-            buyMore(res);
+            console.log("Not enough inventory.");
+            this.buy(res);
         }
-    });
-}
-let updateInventory = (res, sku, quantity) => {
-    let newQty = (res[sku - 1].stock_quantity - quantity);
-    if(newQty >= 0) {
-        let query = "UPDATE products SET stock_quantity = ? WHERE item_id = ?";
-        connection.query(query, [newQty, sku], function(err) {
-            if(err) throw err;
-            console.log(quantity + " " + res[sku - 1].product_name + " added to you cart ");
-            total += quantity * res[sku - 1].price;
-            customerInit(true);
+    },
+    buy: (res) => {
+        inquirer.prompt([
+            {
+                name: "item_id",
+                type: "input",
+                message: "Enter the Sku of the item you want to buy:",
+            },
+            {
+                name: "quantity",
+                type: "input",
+                message: "Enter the quantity:"
+            }
+        ])
+        .then(function(input) {
+            customer.updateInventory(res, input.item_id, input.quantity);
+        });
+    },
+    buyMore: (res) => {
+        inquirer.prompt([
+            {
+                name: "more",
+                type: "confirm",
+                message: "Do you want to buy another item?",
+            }
+        ])
+        .then(function(input) {
+            if (input.more) {
+                customer.init();
+            }
+            else {
+                console.log("Total amount due: $" + total.toFixed(2));
+                connection.end();
+            }
         });
     }
-    else {
-        console.log("Not enough inventory.");
-        buy(res);
-    }
-}
-
-let buy = (res) => {
-    inquirer.prompt([
-        {
-            name: "item_id",
-            type: "input",
-            message: "Enter the Sku of the item you want to buy:",
-        },
-        {
-            name: "quantity",
-            type: "input",
-            message: "Enter the quantity:"
-        }
-    ])
-    .then(function(input) {
-        updateInventory(res, input.item_id, input.quantity);
-    });
-}
-let buyMore = (res) => {
-    inquirer.prompt([
-        {
-            name: "more",
-            type: "confirm",
-            message: "Do you want to buy another item?",
-        }
-    ])
-    .then(function(input) {
-        if (input.more) {
-            customerInit();
-        }
-        else {
-            console.log("Total amount due: $" + total);
-            connection.end();
-        }
-    });
 }
