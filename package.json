@@ -17,7 +17,7 @@
   },
   "homepage": "https://github.com/xtianares/bamazon#readme",
   "dependencies": {
-    "cli-table": "^0.3.1",
+    "cli-table3": "^0.5.1",
     "inquirer": "^6.2.2",
     "mysql": "^2.16.0"
   }

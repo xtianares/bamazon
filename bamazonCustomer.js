@@ -1,8 +1,9 @@
 let mysql = require("mysql"),
     inquirer = require("inquirer"),
-    Table = require('cli-table'); // use to disoplay pretty tables in the console
+    Table = require('cli-table3'), // use to disoplay pretty tables in the console
+    total = 0; // total amount due
 
-var connection = mysql.createConnection({
+let connection = mysql.createConnection({
     host: "localhost",
     port: 3306,
     user: "root",
@@ -20,7 +21,7 @@ let storeInit = () => {
     inquirer.prompt({
         name: "whoThis",
         type: "list",
-        message: "Are a customer, manager or supervisor?",
+        message: "Are you a customer, manager or supervisor?",
         choices: [
             "Customer",
             "Manager",
@@ -46,23 +47,45 @@ let storeInit = () => {
     });
 }
 
-let customerInit = () => {
-    var query = "SELECT * FROM products";
+let customerInit = (current) => {
+    let query = "SELECT * FROM products";
     connection.query(query, function(err, res) {
-        var table = new Table ({
-            head: ["Sku", "Product", "Department", "Price", "Stock"],
-            colWidths: [10, 35, 25, 10, 10]
-        });
-        res.forEach((item, index) => {
-            let {item_id, product_name, department_name, price, stock_quantity} = item;
-            let itemArr = [item_id, product_name, department_name, price, stock_quantity];
-            table.push(itemArr);
-        });
-        console.log(table.toString());
+        if(err) throw err;
+        if (!current) {
+            let table = new Table ({
+                head: ["Sku", "Product", "Department", "Price", "Stock"],
+                colWidths: [10, 35, 25, 10, 10]
+            });
+            res.forEach((item, index) => {
+                let {item_id, product_name, department_name, price, stock_quantity} = item;
+                let itemArr = [item_id, product_name, department_name, price, stock_quantity];
+                table.push(itemArr);
+            });
+            console.log(table.toString());
 
-        // ask customer what he/she wants to buy
-        buy(res);
+            // ask customer what he/she wants to buy
+            buy(res);
+        }
+        else {
+            buyMore(res);
+        }
     });
+}
+let updateInventory = (res, sku, quantity) => {
+    let newQty = (res[sku - 1].stock_quantity - quantity);
+    if(newQty >= 0) {
+        let query = "UPDATE products SET stock_quantity = ? WHERE item_id = ?";
+        connection.query(query, [newQty, sku], function(err) {
+            if(err) throw err;
+            console.log(quantity + " " + res[sku - 1].product_name + " added to you cart ");
+            total += quantity * res[sku - 1].price;
+            customerInit(true);
+        });
+    }
+    else {
+        console.log("Not enough inventory.");
+        buy(res);
+    }
 }
 
 let buy = (res) => {
@@ -70,21 +93,33 @@ let buy = (res) => {
         {
             name: "item_id",
             type: "input",
-            message: "Enter the Sku of the item you want to buy.",
-            choices: [
-                "Customer",
-                "Manager",
-                "Supervisor",
-                "I Dont know!"
-            ]
+            message: "Enter the Sku of the item you want to buy:",
         },
         {
             name: "quantity",
             type: "input",
-            message: "Enter the quantity."
+            message: "Enter the quantity:"
         }
     ])
     .then(function(input) {
-        console.log(input.quantity + " " + res[input.item_id - 1].product_name + " added to you cart ");
+        updateInventory(res, input.item_id, input.quantity);
+    });
+}
+let buyMore = (res) => {
+    inquirer.prompt([
+        {
+            name: "more",
+            type: "confirm",
+            message: "Do you want to buy another item?",
+        }
+    ])
+    .then(function(input) {
+        if (input.more) {
+            customerInit();
+        }
+        else {
+            console.log("Total amount due: $" + total);
+            connection.end();
+        }
     });
 }

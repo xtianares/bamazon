@@ -19,7 +19,9 @@ VALUES
     ('Tootpaste', 'Personal Care', 2.35, 200),
     ('Cotton Balls', 'Personal Care', 1.9, 200),
     ('Band Aids', 'First Aid', 1.99, 200),
-    ('Baseball Gloves', 'Sports', 9.99, 100),
+    ('Baseball Glove', 'Sports', 9.99, 100),
     ('Detergent', 'Home', 14.89, 200),
-    ('SQL for Dummies', 'Books', 8.99, 20),
+    ('MySQL for Dummies', 'Books', 8.99, 20),
     ('Vitamins', 'Pharmacy', 10.95, 20);
+
+UPDATE products SET stock_quantity 1 WHERE item_id = 1;
