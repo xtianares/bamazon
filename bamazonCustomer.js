@@ -110,7 +110,7 @@ const customer = {
             {
                 name: "more",
                 type: "confirm",
-                message: "Do you want to buy another item?",
+                message: "Do you want to buy another item?"
             }
         ])
         .then(function(input) {
