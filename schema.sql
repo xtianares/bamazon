@@ -24,4 +24,3 @@ VALUES
     ('MySQL for Dummies', 'Books', 8.99, 20),
     ('Vitamins', 'Pharmacy', 10.95, 20);
 
-UPDATE products SET stock_quantity 1 WHERE item_id = 1;

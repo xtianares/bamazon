@@ -78,7 +78,7 @@ const customer = {
             let query = "UPDATE products SET stock_quantity = ? WHERE item_id = ?";
             connection.query(query, [newQty, sku], function(err) {
                 if(err) throw err;
-                console.log(quantity + " " + res[sku - 1].product_name + " added to you cart ");
+                console.log(quantity + " " + res[sku - 1].product_name + " added to your cart.");
                 total += quantity * res[sku - 1].price;
                 customer.init(true);
             });
@@ -110,7 +110,7 @@ const customer = {
             {
                 name: "more",
                 type: "confirm",
-                message: "Do you want to buy another item?",
+                message: "Do you want to buy another item?"
             }
         ])
         .then(function(input) {
