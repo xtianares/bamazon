@@ -35,10 +35,10 @@ let storeInit = () => {
             customer.init();
             break;
         case "Manager":
-            managerInit();
+            manager.init();
             break;
         case "Supervisor":
-            supervisorInit();
+            supervisor.init();
             break;
         case "I Dont know!":
             connection.end();
@@ -123,4 +123,70 @@ const customer = {
             }
         });
     }
+}
+
+const manager = {
+    init: (current) => {
+        let question = current ? 'What else do you want to do?' : "What would you like to do?";
+        inquirer.prompt({
+            name: "task",
+            type: "list",
+            message: question,
+            choices: [
+                "View Products for Sale",
+                "View Low Inventory",
+                "Add to Inventory",
+                "Add New Product"
+            ]
+        })
+        .then(function(input) {
+            switch (input.task) {
+            case "View Products for Sale":
+                manager.viewProducts();
+                break;
+            case "View Low Inventory":
+                manager.viewLowInventory();
+                break;
+            case "Add to Inventory":
+                manager.addInventory();
+                break;
+            case "Add New Product":
+                manager.addNewProduct();
+                break;
+            }
+        });
+    },
+    viewProducts: () => {
+        let query = "SELECT * FROM products";
+        connection.query(query, function(err, res) {
+            if(err) throw err;
+            let table = new Table ({
+                head: ["Sku", "Product", "Department", "Price", "Stock"],
+                colWidths: [10, 30, 20, 10, 10]
+            });
+            res.forEach((item, index) => {
+                let {item_id, product_name, department_name, price, stock_quantity} = item;
+                let itemArr = [item_id, product_name, department_name, price.toFixed(2), stock_quantity];
+                table.push(itemArr);
+            });
+            console.log(table.toString());
+            manager.init(true);
+        });
+    },
+    updateInventory: (res, sku, quantity) => {
+        let newQty = (res[sku - 1].stock_quantity - quantity);
+        if(newQty >= 0) {
+            let query = "UPDATE products SET stock_quantity = ? WHERE item_id = ?";
+            connection.query(query, [newQty, sku], function(err) {
+                if(err) throw err;
+                console.log(quantity + " " + res[sku - 1].product_name + " added to your cart.");
+                total += quantity * res[sku - 1].price;
+                customer.init(true);
+            });
+        }
+        else {
+            console.log("Not enough inventory.");
+            customer.buy(res);
+        }
+    },
 }
