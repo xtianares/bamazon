@@ -142,7 +142,7 @@ const manager = {
         .then(function(input) {
             switch (input.task) {
             case "View Products for Sale":
-                manager.viewProducts();
+                manager.viewInventory();
                 break;
             case "View Low Inventory":
                 manager.viewLowInventory();
@@ -156,7 +156,7 @@ const manager = {
             }
         });
     },
-    viewProducts: () => {
+    viewInventory: () => {
         let query = "SELECT * FROM products";
         connection.query(query, function(err, res) {
             if(err) throw err;
