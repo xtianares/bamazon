@@ -173,20 +173,76 @@ const manager = {
             manager.init(true);
         });
     },
-    updateInventory: (res, sku, quantity) => {
-        let newQty = (res[sku - 1].stock_quantity - quantity);
-        if(newQty >= 0) {
-            let query = "UPDATE products SET stock_quantity = ? WHERE item_id = ?";
-            connection.query(query, [newQty, sku], function(err) {
-                if(err) throw err;
-                console.log(quantity + " " + res[sku - 1].product_name + " added to your cart.");
-                total += quantity * res[sku - 1].price;
-                customer.init(true);
+    viewLowInventory: () => {
+        let query = "SELECT * FROM products WHERE stock_quantity <= 5";
+        connection.query(query, function(err, res) {
+            if(err) throw err;
+            let table = new Table ({
+                head: ["Sku", "Product", "Department", "Price", "Stock"],
+                colWidths: [10, 30, 20, 10, 10]
             });
-        }
-        else {
-            console.log("Not enough inventory.");
-            customer.buy(res);
-        }
+            res.forEach((item, index) => {
+                let {item_id, product_name, department_name, price, stock_quantity} = item;
+                let itemArr = [item_id, product_name, department_name, price.toFixed(2), stock_quantity];
+                table.push(itemArr);
+            });
+            console.log(table.toString());
+            manager.init(true);
+        });
     },
+    addInventory: () => {
+        let query = "SELECT * FROM products";
+        connection.query(query, function(err, res) {
+            if (err) throw err;
+            inquirer.prompt([{
+                name: "product",
+                type: "rawlist",
+                choices: function() {
+                    let productsArr = [];
+                    for (let i = 0; i < res.length; i++) {
+                        productsArr.push(res[i].product_name);
+                    }
+                    return productsArr;
+                },
+                message: "Which product do you want to update?"
+            },
+            {
+                name: "stock",
+                type: "input",
+                message: "How many do you want to add?"
+            }])
+            .then(function(answer) {
+                let product;
+                for (let i = 0; i < res.length; i++) {
+                    if (res[i].product_name === answer.product) {
+                        product = res[i];
+                    }
+                }
+                let query = "UPDATE products SET stock_quantity = ? WHERE item_id = ?";
+                connection.query(query, [product.stock_quantity + parseFloat(answer.stock), product.item_id
+                ], function(error) {
+                    if (error) throw err;
+                    console.log("Inventory updated!");
+                    manager.init(true);
+                });
+            });
+        });
+    },
+    addNewProduct: () => {
+        let query = "SELECT * FROM products WHERE stock_quantity <= 5";
+        connection.query(query, function(err, res) {
+            if(err) throw err;
+            let table = new Table ({
+                head: ["Sku", "Product", "Department", "Price", "Stock"],
+                colWidths: [10, 30, 20, 10, 10]
+            });
+            res.forEach((item, index) => {
+                let {item_id, product_name, department_name, price, stock_quantity} = item;
+                let itemArr = [item_id, product_name, department_name, price.toFixed(2), stock_quantity];
+                table.push(itemArr);
+            });
+            console.log(table.toString());
+            manager.init(true);
+        });
+    }
 }
