@@ -25,7 +25,7 @@ let storeInit = () => {
         choices: [
             "Customer",
             "Manager",
-            "Supervisor",
+            // "Supervisor",
             "I Dont know!"
         ]
     })
@@ -136,7 +136,8 @@ const manager = {
                 "View Products for Sale",
                 "View Low Inventory",
                 "Add to Inventory",
-                "Add New Product"
+                "Add New Product",
+                "Exit"
             ]
         })
         .then(function(input) {
@@ -152,6 +153,9 @@ const manager = {
                 break;
             case "Add New Product":
                 manager.addNewProduct();
+                break;
+            case "Exit":
+                connection.end();
                 break;
             }
         });
@@ -229,20 +233,35 @@ const manager = {
         });
     },
     addNewProduct: () => {
-        let query = "SELECT * FROM products WHERE stock_quantity <= 5";
-        connection.query(query, function(err, res) {
-            if(err) throw err;
-            let table = new Table ({
-                head: ["Sku", "Product", "Department", "Price", "Stock"],
-                colWidths: [10, 30, 20, 10, 10]
+        inquirer.prompt([{
+            name: "product",
+            type: "input",
+            message: "Product name?"
+        },
+        {
+            name: "department",
+            type: "input",
+            message: "Department name?"
+        },
+        {
+            name: "price",
+            type: "input",
+            message: "Product price?"
+        },
+        {
+            name: "quantity",
+            type: "input",
+            message: "Quantity?"
+        }])
+        .then(function(answer) {
+            let {product, department, price, quantity} = answer;
+            let query = "INSERT INTO products (product_name, department_name, price, stock_quantity) ";
+                query += "VALUES ('" + product + "', '" + department + "', " + parseFloat(price) + ", " + parseFloat(quantity) + ")";
+            // console.log(query);
+            connection.query(query, function(err, res) {
+                console.log("New product added.");
+                manager.init(true);
             });
-            res.forEach((item, index) => {
-                let {item_id, product_name, department_name, price, stock_quantity} = item;
-                let itemArr = [item_id, product_name, department_name, price.toFixed(2), stock_quantity];
-                table.push(itemArr);
-            });
-            console.log(table.toString());
-            manager.init(true);
         });
     }
 }
