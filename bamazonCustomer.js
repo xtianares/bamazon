@@ -1,8 +1,7 @@
 let mysql = require("mysql"),
     inquirer = require("inquirer"),
     Table = require('cli-table3'), // use to disoplay pretty tables in the console
-    total = 0, // total amount due
-    skus = [];
+    total = 0;
 
 let connection = mysql.createConnection({
     host: "localhost",
@@ -49,6 +48,7 @@ let storeInit = () => {
 }
 
 const customer = {
+    skus: [],
     init: (current) => {
         let query = "SELECT * FROM products";
         connection.query(query, function(err, res) {
@@ -62,7 +62,7 @@ const customer = {
                     let {item_id, product_name, department_name, price, stock_quantity} = item;
                     let itemArr = [item_id, product_name, department_name, price.toFixed(2), stock_quantity];
                     table.push(itemArr);
-                    skus.push(item_id);
+                    customer.skus.push(item_id);
                 });
                 console.log(table.toString());
 
@@ -110,8 +110,8 @@ const customer = {
         });
     },
     updateInventory: (res, sku, quantity) => {
-        // console.log(skus.indexOf(sku));
-        if (skus.indexOf(parseFloat(sku)) < 0){
+        // console.log(customer.skus.indexOf(sku));
+        if (customer.skus.indexOf(parseFloat(sku)) < 0){
             console.log("Sku '" + sku + "' does not exist. Please try again.");
             customer.buy(res);
         }
