@@ -1,7 +1,8 @@
 let mysql = require("mysql"),
     inquirer = require("inquirer"),
     Table = require('cli-table3'), // use to disoplay pretty tables in the console
-    total = 0; // total amount due
+    total = 0, // total amount due
+    skus = [];
 
 let connection = mysql.createConnection({
     host: "localhost",
@@ -21,7 +22,7 @@ let storeInit = () => {
     inquirer.prompt({
         name: "whoThis",
         type: "list",
-        message: "Are you a customer, manager or supervisor?",
+        message: "Are you a customer or the manager?",
         choices: [
             "Customer",
             "Manager",
@@ -61,6 +62,7 @@ const customer = {
                     let {item_id, product_name, department_name, price, stock_quantity} = item;
                     let itemArr = [item_id, product_name, department_name, price.toFixed(2), stock_quantity];
                     table.push(itemArr);
+                    skus.push(item_id);
                 });
                 console.log(table.toString());
 
@@ -72,28 +74,12 @@ const customer = {
             }
         });
     },
-    updateInventory: (res, sku, quantity) => {
-        let newQty = (res[sku - 1].stock_quantity - quantity);
-        if(newQty >= 0) {
-            let query = "UPDATE products SET stock_quantity = ? WHERE item_id = ?";
-            connection.query(query, [newQty, sku], function(err) {
-                if(err) throw err;
-                console.log(quantity + " " + res[sku - 1].product_name + " added to your cart.");
-                total += quantity * res[sku - 1].price;
-                customer.init(true);
-            });
-        }
-        else {
-            console.log("Not enough inventory.");
-            customer.buy(res);
-        }
-    },
     buy: (res) => {
         inquirer.prompt([
             {
                 name: "item_id",
                 type: "input",
-                message: "Enter the Sku of the item you want to buy:",
+                message: "Enter the 'Sku' of the item you want to buy:",
             },
             {
                 name: "quantity",
@@ -122,6 +108,29 @@ const customer = {
                 connection.end();
             }
         });
+    },
+    updateInventory: (res, sku, quantity) => {
+        // console.log(skus.indexOf(sku));
+        if (skus.indexOf(parseFloat(sku)) < 0){
+            console.log("Sku '" + sku + "' does not exist. Please try again.");
+            customer.buy(res);
+        }
+        else {
+            let newQty = (res[sku - 1].stock_quantity - quantity);
+            if (newQty >= 0) {
+                let query = "UPDATE products SET stock_quantity = ? WHERE item_id = ?";
+                connection.query(query, [newQty, sku], function(err) {
+                    if(err) throw err;
+                    console.log(quantity + " " + res[sku - 1].product_name + " added to your cart.");
+                    total += quantity * res[sku - 1].price;
+                    customer.init(true);
+                });
+            }
+            else {
+                console.log("Not enough inventory.");
+                customer.buy(res);
+            }
+        }
     }
 }
 
@@ -199,36 +208,37 @@ const manager = {
         connection.query(query, function(err, res) {
             if (err) throw err;
             inquirer.prompt([{
-                name: "product",
-                type: "rawlist",
-                choices: function() {
-                    let productsArr = [];
-                    for (let i = 0; i < res.length; i++) {
-                        productsArr.push(res[i].product_name);
-                    }
-                    return productsArr;
-                },
-                message: "Which product do you want to update?"
+                name: "sku",
+                type: "input",
+                message: "Enter the 'Sku' of the product you want to update."
             },
             {
-                name: "stock",
+                name: "quantity",
                 type: "input",
                 message: "How many do you want to add?"
             }])
             .then(function(answer) {
-                let product;
-                for (let i = 0; i < res.length; i++) {
-                    if (res[i].product_name === answer.product) {
-                        product = res[i];
+                let product,
+                    skuActive = false;
+                res.forEach((item, index) => {
+                    if (item.item_id == answer.sku) {
+                        product = item;
                     }
-                }
-                let query = "UPDATE products SET stock_quantity = ? WHERE item_id = ?";
-                connection.query(query, [product.stock_quantity + parseFloat(answer.stock), product.item_id
-                ], function(error) {
-                    if (error) throw err;
-                    console.log("Inventory updated!");
-                    manager.init(true);
                 });
+
+                if (product !== undefined) {
+                    let query = "UPDATE products SET stock_quantity = ? WHERE item_id = ?";
+                    connection.query(query, [product.stock_quantity + parseFloat(answer.quantity), answer.sku
+                    ], function(error) {
+                        if (error) throw err;
+                        console.log("Inventory updated!");
+                        manager.init(true);
+                    });
+                }
+                else {
+                    console.log("Product with sku '" +  answer.sku + "' does not exist.");
+                    manager.init(true);
+                }
             });
         });
     },

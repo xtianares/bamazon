@@ -13,14 +13,13 @@ CREATE TABLE products(
 
 INSERT INTO products (product_name, department_name, price, stock_quantity)
 VALUES
-    ('MacBook Pro 1TB', 'Electronics', 2500.00, 10),
+    ('MacBook Pro 1TB', 'Electronics', 2500.00, 5),
     ('Javascript for Dummies', 'Books', 10.65, 20),
     ('Kayak', 'Outdoor', 450.00, 10),
     ('Tootpaste', 'Personal Care', 2.35, 200),
     ('Cotton Balls', 'Personal Care', 1.9, 200),
     ('Band Aids', 'First Aid', 1.99, 200),
-    ('Baseball Glove', 'Sports', 9.99, 100),
+    ('Baseball Glove', 'Sports', 9.99, 5),
     ('Detergent', 'Home', 14.89, 200),
     ('MySQL for Dummies', 'Books', 8.99, 20),
-    ('Vitamins', 'Pharmacy', 10.95, 20);
-
+    ('Vitamins', 'Pharmacy', 10.95, 5);
