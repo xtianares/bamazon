@@ -5,13 +5,13 @@ A store inventory node app. This is command line application takes in user input
 To start the application simply run "node bamazon" without the quotes in the command line, once it's running follow the prompts to accomplish what you want to do.
 
 ### Customer Flow Demo
-![Customer Flow Demo](img/customer-flow.gif)\
+![Customer Flow Demo](img/customer-flow.gif)
 
 ### Manager Flow Demo
 ![Manager Flow Demo](img/manager-flow-1.gif)\
 ![Manager Flow Demo](img/manager-flow-2.gif)\
 ![Manager Flow Demo](img/manager-flow-3.gif)\
-![Manager Flow Demo](img/manager-flow-4.gif)\
+![Manager Flow Demo](img/manager-flow-4.gif)
 
 ### Technology Used
 Node.js\
