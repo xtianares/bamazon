@@ -12,3 +12,7 @@ To start the application simply run "node bamazon" without the quotes in the com
 ![Manager Flow Demo](img/manager-flow-2.gif)\
 ![Manager Flow Demo](img/manager-flow-3.gif)\
 ![Manager Flow Demo](img/manager-flow-4.gif)\
+
+### Technology Used
+Node.js\
+MySQL\
