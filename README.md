@@ -15,4 +15,4 @@ To start the application simply run "node bamazon" without the quotes in the com
 
 ### Technology Used
 Node.js\
-MySQL\
+MySQL
